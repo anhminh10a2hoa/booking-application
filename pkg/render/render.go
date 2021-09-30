@@ -7,36 +7,44 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+
+	"github.com/anhminh10a2hoa/go-course/pkg/config"
+	"github.com/anhminh10a2hoa/go-course/pkg/models"
 )
 
 var functions = template.FuncMap{}
+var app *config.AppConfig
 
-func RenderTemplate(w http.ResponseWriter, tmpl string) {
-	tc, err := CreateTemplateCache()
-	if err != nil {
-		log.Fatal(err)
+func NewTemplate(a *config.AppConfig) {
+	app = a
+}
+
+func AddDefaultData(td *models.TemplateData) *models.TemplateData {
+	return td
+}
+
+func RenderTemplate(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
+	var tc map[string]*template.Template
+	if app.UseCache {
+		// get the template cache from the app config
+		tc = app.TemplateCache
+	} else {
+		tc, _ = CreateTemplateCache()
 	}
 
 	t, ok := tc[tmpl]
 	if !ok {
-		log.Fatal(err)
+		log.Fatal("Couldn't get template from TemplateCache")
 	}
 
 	buf := new(bytes.Buffer)
+	td = AddDefaultData(td)
 
-	_ = t.Execute(buf, nil)
+	_ = t.Execute(buf, td)
 
-	_, err = buf.WriteTo(w)
+	_, err := buf.WriteTo(w)
 	if err != nil {
 		fmt.Println("Error writing template: ", err)
-	}
-
-	parsedTemplate, _ := template.ParseFiles("./templates/" + tmpl)
-	err = parsedTemplate.Execute(w, nil)
-
-	if err != nil {
-		fmt.Println("Error parsing template: ", err)
-		return
 	}
 }
 
