@@ -6,6 +6,13 @@
       <div class="col">
         <h1>This is the about page</h1>
         <p>This came from the templates: {{index .StringMap "test"}} </p>
+        <p> 
+          {{if ne (index .StringMap "remote_ip") ""}}
+            IP address: {{index .StringMap "remote_ip"}}
+          {{else}}
+            Dont have IP address
+          {{end}} 
+        </p>
       </div>
     </div>
   </div>
